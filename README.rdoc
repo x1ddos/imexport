@@ -11,13 +11,12 @@ separated servers and they had quite a different data structures. Still,
 I wanted to keep some pieces of data synchronized quite frequently, at least 
 for a not-so-short transition period.
 
-I had a few options to consider:
+I had a couple options to consider:
 
 * Simple "INSERT INTO new_DB (...) SELECT original_data FROM old_DB" or similar
-  to that.
-  Cons: I couldn't do it in one sql expression as the data structures were
-        too different; I'd have to take care of attributes such as +updated_at+ 
-        and +created_at+ manually, let alone models validations.
+  to that. Cons: I couldn't do it in one sql expression as the data structures 
+  were too different; I'd have to take care of attributes such as +updated_at+ 
+  and +created_at+ manually, let alone models validations.
 * Create models for old data structures in the new rails app and do something
   like this in a rake task: 
   
@@ -26,7 +25,7 @@ I had a few options to consider:
      end
      
   Cons: I didn't want to mess up the new rails app with a bunch of models 
-        I'd never use except for synchronization.
+  I'd never use except for synchronization.
 * Dump +original_data+ into a CSV format and the use +CSV+ or +FasterCSV+.
   Actually this was the choice I opted for from the beginning. The problem
   here was that I had a really messed up data sometimes: lots of copy&paste
@@ -125,44 +124,42 @@ and your +seminars+ table will be synchronized.
 
 === Options for ImExport::import
 
- * +class_name+ - "String" or :symbol
-   ActiveRecord model defined in your rails app.
+* +class_name+ - "String" or :symbol
+  ActiveRecord model defined in your rails app.
     
- * +find_by+ - "String" or :symbol
-   This is how ImExport will recognize whether it should do model.save or
-   model.update_attributes(...).
-   Considering previous example, it would do seminar.save
-   if seminar.find_by_title(...) returns nil or 
-   seminar.update_attributes(...) otherwise.
+* +find_by+ - "String" or :symbol.
+  This is how ImExport will recognize whether it should do model.save or 
+  model.update_attributes(...). Considering previous example, it would do 
+  seminar.save if seminar.find_by_title(...) returns nil or 
+  seminar.update_attributes(...) otherwise.
     
- * +db_columns_prefix+ - "String"
-   Column name prefix that should be skipped while looking for the corresponding
-   model attribute name.
-   Againg, considering previous example, +COLUMN_title+ actually means +title+
-   attribute of +Seminar+ model.
+* +db_columns_prefix+ - "String".
+  Column name prefix that should be skipped while looking for the corresponding
+  model attribute name. Againg, considering previous example, +COLUMN_title+ 
+  actually means +title+ attribute of +Seminar+ model.
     
- * +map+ - Hash
-   Tells ImExport how to map column attributes with their corresponding
-   model attributes. Don't add +db_columns_prefix+ to the colum names here, 
-   it is already cleaned up.
+* +map+ - Hash.
+  Tells ImExport how to map column attributes with their corresponding model 
+  attributes. Don't add +db_columns_prefix+ to the colum names here, 
+  it is already cleaned up.
     
-   Also, you don't really have to define mapping for attributes that have the
-   same names as columns in the text file to be parsed, they will be recognized
-   and set automatically.
+  Also, you don't really have to define mapping for attributes that have the
+  same names as columns in the text file to be parsed, they will be recognized
+  and set automatically.
+  
+  Every item in this Hash can be defined in one of the following ways:
     
-   Every item in this Hash can be defined in one of the following ways:
-    
-     * 'column_name' => :symbol
-       behavior: model.symbol = <value of 'column_name'>
+    * 'column_name' => :symbol
+    Behavior: model.symbol = <value of 'column_name'>
         
-     * 'column_name' => { :symbol => Proc.new { |column_value| ... } }
-       behavior: model.symbol = <result of Proc call>
-       Proc's only argument is the column value
+    * 'column_name' => { :symbol => Proc.new { |column_value| ... } }
+    Behavior: model.symbol = <result of Proc call> where Proc's only argument 
+    is the column value.
         
-     * 'column_name' => Proc.new { |column_value, model_object| ... }
-       behavior: Proc call with two arguments, column value and object-to-be-saved
-       itself. This is the only case where your code should take of updating
-       model's attribute(s) since ImExport can guess the attribute name
+    * 'column_name' => Proc.new { |column_value, model_object| ... }
+    Behavior: Proc call with two arguments, column value and object-to-be-saved 
+    itself. This is the only case where your code should take of updating 
+    model's attribute(s) since ImExport can guess the attribute name.
 
 == How to install
 
