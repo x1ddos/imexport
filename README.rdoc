@@ -1,9 +1,9 @@
 == Description
 
 This library imports data from a text file (created by 
-+mysql -E -e "SELECT something FROM somewhere, somewhere_else ..." > data.dump+ 
+mysql -E -e "SELECT something FROM somewhere, somewhere_else ..." > data.dump
 only for the moment) into your rails app, meaning it only works with your
-+ActiveRecord+ models.
+ActiveRecord models.
 
 I had this little problem. There was an old web app written in java and a new 
 rails app. Although both were using +mysql+, "old" and "new" DBs were running on 
@@ -13,27 +13,27 @@ for a not-so-short transition period.
 
 I had a few options to consider:
 
- * Simple +INSERT INTO new_DB (...) SELECT original_data FROM old_DB+ or similar
-   to that.
-   Cons: I couldn't do it in one sql expression as the data structures were
-         too different; I'd have to take care of attributes such as +updated_at+ 
-         and +created_at+ manually, let alone models validations.
- * Create models for old data structures in the new rails app and do something
-   like this in a rake task: 
-   
-      OldModel.all do |old|
-        NewModel.create :attr1 => old.attr1, :attr2 => old...
-      end
-      
-   Cons: I didn't want to mess up the new rails app with a bunch of models 
-         I'd never use except for synchronization.
- * Dump +original_data+ into a CSV format and the use +CSV+ or +FasterCSV+.
-   Actually this was the choice I opted for from the beginning. The problem
-   here was that I had a really messed up data sometimes: lots of copy&paste
-   from software like MS Word, etc. +FasterCSV+ was throwing Malformed exceptions
-   too often and +CSV+ sometimes wasn't able to recognize end of row / beginning
-   of a new row. It wasn't their fault, it was my data bad quality. So, I decided
-   to write this little gem.
+* Simple "INSERT INTO new_DB (...) SELECT original_data FROM old_DB" or similar
+  to that.
+  Cons: I couldn't do it in one sql expression as the data structures were
+        too different; I'd have to take care of attributes such as +updated_at+ 
+        and +created_at+ manually, let alone models validations.
+* Create models for old data structures in the new rails app and do something
+  like this in a rake task: 
+  
+     OldModel.all do |old|
+       NewModel.create :attr1 => old.attr1, :attr2 => old...
+     end
+     
+  Cons: I didn't want to mess up the new rails app with a bunch of models 
+        I'd never use except for synchronization.
+* Dump +original_data+ into a CSV format and the use +CSV+ or +FasterCSV+.
+  Actually this was the choice I opted for from the beginning. The problem
+  here was that I had a really messed up data sometimes: lots of copy&paste
+  from software like MS Word, etc. +FasterCSV+ was throwing Malformed exceptions
+  too often and +CSV+ sometimes wasn't able to recognize end of row / beginning
+  of a new row. It wasn't their fault, it was my data bad quality. So, I decided
+  to write this little gem.
    
 == How's it different from CSV and FasterCSV
 
@@ -41,7 +41,7 @@ First off, this library isn't meant to replace either of them. It works with
 different text formats (not CSV) and doesn't do just file parsing.
 
 Consider this snippet created by 
-+mysql -E -e "SELECT title AS COLUMN_title, speaker AS COLUMN_speaker, abstract AS COLUMN_abstract FROM Seminars" > seminars.txt+:
+mysql -E -e "SELECT title AS COLUMN_title, speaker AS COLUMN_speaker, abstract AS COLUMN_abstract FROM Seminars" > seminars.txt:
 
   *************************** 7. row ***************************
   COLUMN_title: Conditional XPath = Codd Complete XPath
@@ -51,12 +51,12 @@ Consider this snippet created by
   XML document tree models is expressible?
   We give two necessary and sufficient conditions on XPath like
 
-This library creates a new model object, recognizes each +COLUMN_attr:+ and
-tries to set attribute of that object, like +model.title = COLUMN_title+, 
-+model.speaker = COLUMN_speaker+ and +model.abstract = COLUMN_abstract+.
+This library creates a new model object, recognizes each +COLUMN_attr+ and
+tries to set attribute of that object, like model.title = COLUMN_title, 
+model.speaker = COLUMN_speaker and model.abstract = COLUMN_abstract.
 
-It then runs model validations (+model.valid?+) and does either +model.save+ or
-+model.update_attributes(attrs_hash)+.
+It then runs model validations (model.valid?) and does either model.save or
+model.update_attributes(attrs_hash).
 
 == Usage
 
@@ -117,7 +117,7 @@ Lastly, let's do the import:
                    :db_columns_prefix => 'COLUMN_',
                    :map               => COLUMNS_TO_MODEL_MAP})
 
-You would run this task in this way:
+You would run the task in this way:
 
   rake db:import:seminars FROM_FILE=/path/to/seminars.txt
 
@@ -125,44 +125,44 @@ and your +seminars+ table will be synchronized.
 
 === Options for ImExport::import
 
-  * +:class_name+ - "String" or :symbol
-    +ActiveRecord+ model defined in your rails app.
+ * +class_name+ - "String" or :symbol
+   ActiveRecord model defined in your rails app.
     
-  * +:find_by+ - "String" or :symbol
-    This is how ImExport will recognize whether it should do +model.save+ or
-    +model.update_attributes(...)+.
-    Considering previous example, it would do +seminar.save+ 
-    if +seminar.find_by_title(...)+ returns +nil+; 
-    +seminar.update_attributes(...)+ otherwise.
+ * +find_by+ - "String" or :symbol
+   This is how ImExport will recognize whether it should do model.save or
+   model.update_attributes(...).
+   Considering previous example, it would do seminar.save
+   if seminar.find_by_title(...) returns nil or 
+   seminar.update_attributes(...) otherwise.
     
-  * +:db_columns_prefix+ - "String"
-    Column name prefix that should be skipped while looking for the corresponding
-    model attribute name.
-    Againg, considering previous example, +COLUMN_title+ actually means +title+
-    attribute of +Seminar+ model.
+ * +db_columns_prefix+ - "String"
+   Column name prefix that should be skipped while looking for the corresponding
+   model attribute name.
+   Againg, considering previous example, +COLUMN_title+ actually means +title+
+   attribute of +Seminar+ model.
     
-  * +:map+ - Hash
-    Tells ImExport how to map column attributes with their corresponding
-    model attributes. Don't add +:db_columns_prefix+ to the colum names here, 
-    it is already cleaned up.
+ * +map+ - Hash
+   Tells ImExport how to map column attributes with their corresponding
+   model attributes. Don't add +db_columns_prefix+ to the colum names here, 
+   it is already cleaned up.
     
-    Also, you don't really have to define mapping for attributes that have the
-    same names as columns in the text file to be parsed, they will be recognized
-    and set automatically.
+   Also, you don't really have to define mapping for attributes that have the
+   same names as columns in the text file to be parsed, they will be recognized
+   and set automatically.
     
-    Every item in this Hash can be defined in one of the following ways:
+   Every item in this Hash can be defined in one of the following ways:
     
-      * +'column_name' => :symbol+
-        behavior: model.symbol = <value of 'column_name'>
+     * 'column_name' => :symbol
+       behavior: model.symbol = <value of 'column_name'>
         
-      * +'column_name' => { :symbol => Proc.new { |column_value| ... } }+
-        behavior: model.symbol = <result of Proc call>
-        Proc's only argument is the column value
+     * 'column_name' => { :symbol => Proc.new { |column_value| ... } }
+       behavior: model.symbol = <result of Proc call>
+       Proc's only argument is the column value
         
-      * +'column_name' => Proc.new { |column_value, model_object| ... }+
-        behavior: Proc call with two arguments, column value and object-to-be-saved
-        itself. This is the only case where your code should take of updating
-        model's attribute(s) since ImExport can guess the attribute name
+     * 'column_name' => Proc.new { |column_value, model_object| ... }
+       behavior: Proc call with two arguments, column value and object-to-be-saved
+       itself. This is the only case where your code should take of updating
+       model's attribute(s) since ImExport can guess the attribute name
 
 == How to install
 
@@ -170,5 +170,5 @@ and your +seminars+ table will be synchronized.
   
 == Contact
 
-  mailto:alex@digns.com
+mailto:alex@digns.com
 
