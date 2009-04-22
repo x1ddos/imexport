@@ -122,14 +122,54 @@ You would run the task in this way:
 
 and your +seminars+ table will be synchronized.
 
+So, complete rake task would look like this:
+
+  namespace :db do
+    namespace :import do
+      task :seminars => :environment do
+        require imexport
+        
+        COLUMNS_TO_MODEL_MAP = {
+          'date_time' => { :date => Proc.new do |datetime| 
+                                      # YYYY-MM-DDTHH:MM:SS
+                                      DateTime.strptime(datetime, '%FT%T')
+                                    end },
+          'publish' => { :published => Proc.new do |val|
+                                               val.to_i == 1
+                                       end }
+        }
+
+        ImExport::import(ENV['FROM_FILE'], { 
+                         :class_name        => 'Seminar', 
+                         :find_by           => 'title',
+                         :db_columns_prefix => 'COLUMN_',
+                         :map               => COLUMNS_TO_MODEL_MAP})
+      end
+    end
+  end
+
+Also, you can pass a block to ImExport::import. In that case you'll have to 
+call model.save or model.update_attributes(...) yourself:
+
+  ImExport::import(ENV['FROM_FILE'], { 
+                   :class_name        => 'Seminar', 
+                   :find_by           => 'title',
+                   :db_columns_prefix => 'COLUMN_',
+                   :map               => COLUMNS_TO_MODEL_MAP}) do |seminar|
+                   
+    # do something with seminar object here, e.g. 
+    # seminar.save
+    puts "---> #{seminar.inspect}"
+  end
+
 === Options for ImExport::import
 
-* +class_name+ - "String" or :symbol
+* +class_name+ - "String" or :symbol.
   ActiveRecord model defined in your rails app.
     
 * +find_by+ - "String" or :symbol.
   This is how ImExport will recognize whether it should do model.save or 
-  model.update_attributes(...). Considering previous example, it would do 
+  model.update_attributes(...). Considering previous example it would do 
   seminar.save if seminar.find_by_title(...) returns nil or 
   seminar.update_attributes(...) otherwise.
     
@@ -149,17 +189,17 @@ and your +seminars+ table will be synchronized.
   
   Every item in this Hash can be defined in one of the following ways:
     
-    * 'column_name' => :symbol
-    Behavior: model.symbol = <value of 'column_name'>
-        
-    * 'column_name' => { :symbol => Proc.new { |column_value| ... } }
-    Behavior: model.symbol = <result of Proc call> where Proc's only argument 
-    is the column value.
-        
-    * 'column_name' => Proc.new { |column_value, model_object| ... }
-    Behavior: Proc call with two arguments, column value and object-to-be-saved 
-    itself. This is the only case where your code should take of updating 
-    model's attribute(s) since ImExport can guess the attribute name.
+  * 'column_name' => :symbol
+  Behavior: model.symbol = <value of 'column_name'>
+      
+  * 'column_name' => { :symbol => Proc.new { |column_value| ... } }
+  Behavior: model.symbol = <result of Proc call> where Proc's only argument 
+  is the column value.
+      
+  * 'column_name' => Proc.new { |column_value, model_object| ... }
+  Behavior: Proc call with two arguments, column value and object-to-be-saved 
+  itself. This is the only case where your code should take of updating 
+  model's attribute(s) since ImExport can guess the attribute name.
 
 == How to install
 
