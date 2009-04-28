@@ -1,8 +1,11 @@
 module ImExport
   def self.import(file_name, options = {})
-  
+    if options[:class_name] =~ /[^a-zA-Z\:]+/
+      raise "#{options[:class_name]} doesn't look like a class name"
+    end
+    
     ## e.g. :seminar => "seminar" => "Seminar" => Seminar
-    model = Kernel.const_get(options[:class_name].to_s.classify)
+    model = eval(options[:class_name].to_s.classify)
     
     ## used to check for an existing record. so we do update_attributes()
     # instead of save() in that case
