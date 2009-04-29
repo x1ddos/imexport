@@ -1,8 +1,10 @@
-== 0.1.3
-* Bugfix. Wasn't saving the last record.
-* Adding :verbose option (see README.rdoc)
+v0.1.3 (Aprile 29th, 2009)
+
+* Bugfixing (wasn't saving the last record). 
+* Adding :verbose option (see README.rdoc). 
 * ImExport::import() is now oboslete. Use ImExport::Import.from_file().
 
-== 0.1.2
+v0.1.2 
+
 * Adding support for models within a namespace (using eval() now with a regexp).
 

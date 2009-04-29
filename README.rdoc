@@ -188,7 +188,7 @@ call model.save or model.update_attributes(...) yourself:
   +true+, +false+ or +Proc+.new { |model| }.
   In cases where model.valid? returns false ImExport might output an error 
   (WARNING) message. +Verbose+ option tells it whether do it or not. In case
-  +verbose+ is a Proc, the latter being passed the model-with-errors and should
+  +verbose+ is a Proc, the latter being passed the model in question and should
   return +true+ or +false+. 
   Default is +true+.
 
@@ -220,6 +220,10 @@ call model.save or model.update_attributes(...) yourself:
 
   sudo gem install crhym3-imexport
   
+If that fails execute the following and try it again.
+
+  gem sources -a http://gems.github.com/
+
 == License
 
 Copyright (c) 2009 Alex Vagin, released under the MIT license.
