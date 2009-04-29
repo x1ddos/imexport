@@ -153,11 +153,12 @@ So, the complete rake task would look like this:
 Also, you can pass a block to ImExport::import. In that case you'll have to 
 call model.save or model.update_attributes(...) yourself:
 
-  ImExport::import(ENV['FROM_FILE'], { 
-                   :class_name        => 'Seminar', 
-                   :find_by           => 'title',
-                   :db_columns_prefix => 'COLUMN_',
-                   :map               => COLUMNS_TO_MODEL_MAP}) do |seminar|
+  ImExport::Import.from_file(ENV['FROM_FILE'], { 
+         :class_name        => 'Seminar', 
+         :find_by           => 'title',
+         :db_columns_prefix => 'COLUMN_',
+         :verbose           => false,
+         :map               => COLUMNS_TO_MODEL_MAP}) do |seminar|
                    
     # do something with seminar object here, e.g. 
     # seminar.save
@@ -182,6 +183,14 @@ call model.save or model.update_attributes(...) yourself:
   Column name prefix that should be skipped while looking for the corresponding
   model attribute name. Againg, considering previous example, +COLUMN_title+ 
   actually means +title+ attribute of +Seminar+ model.
+  
++verbose+::
+  +true+, +false+ or +Proc+.new { |model| }.
+  In cases where model.valid? returns false ImExport might output an error 
+  (WARNING) message. +Verbose+ option tells it whether do it or not. In case
+  +verbose+ is a Proc, the latter being passed the model-with-errors and should
+  return +true+ or +false+. 
+  Default is +true+.
 
 +map+::
   Hash.
